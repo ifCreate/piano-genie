@@ -8,14 +8,68 @@ const CONSTANTS = {
 }
 
 /*************************
- * MIDI or Magenta player
+ * MIDI Helper
+ * manages connecting to MIDI inputs,
+ * and mapping MIDI pitches to Genie buttons
+ ************************/
+class MIDIHelper {
+  constructor() {
+    this.midiIn = [];
+    this.selectElement = document.getElementById('selectOut');
+  }
+
+  midiReady(midi) {
+    // Also react to device changes.
+    midi.addEventListener('statechange', (event) => this.initDevices(event.target));
+    this.initDevices(midi);
+
+    console.log(midi)
+  }
+  initDevices(midi) {
+    // clear current midi inputs
+    this.midiIn = [];
+
+    const inputs = midi.inputs.values();
+    for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+      this.midiIn.push(input.value);
+    }
+    // register midi input events
+    this.midiIn.forEach(input => {
+      input.onmidimessage = (e) => { this.parseMIDIMessage(e) };
+    })
+    // No MIDI, no settings.
+    btnSettings.hidden = this.midiIn.length === 0;
+    this.selectElement.innerHTML = this.midiIn.map(device => `<option>${device.name}</option>`).join('');
+  }
+  parseMIDIMessage(e) {
+    const data = e.data
+    // 1st bit of midi data indicates type of event.
+    // http://fmslogo.sourceforge.net/manual/midi-table.html
+    // for Note on & note off,
+    // 2nd bit is the pitch
+    // 3rd bit is the velocity
+
+    // 144 - Note on
+    if (data[0] === 144) {
+      const pitch = data[1]
+      if (this.onNoteOn) this.onNoteOn(pitch)
+    }
+    // 128 - Note off
+    if (data[0] === 128) {
+      const pitch = data[1]
+      if (this.onNoteOff) this.onNoteOff(pitch)
+    }
+  }
+}
+
+ /*************************
+ * Magenta player
  ************************/
 class Player {
   constructor() {
     this.player = new mm.SoundFontPlayer('sgm_plus');
-    this.midiOut = [];
-    this.usingMidiOut = false;
-    this.selectElement = document.getElementById('selectOut');
+    this.midiIn = [];
+    
     this.loadAllSamples();
   }
   
@@ -28,57 +82,13 @@ class Player {
   }
   
   playNoteDown(pitch) {
-    // Send to MIDI out or play with the Magenta player.
-    if (this.usingMidiOut) {
-      this.sendMidiNoteOn(pitch);
-    } else {
-      mm.Player.tone.context.resume();
-      this.player.playNoteDown({pitch:pitch});
-    }
+    // play with the Magenta player.
+    mm.Player.tone.context.resume();
+    this.player.playNoteDown({pitch:pitch});
   }
   
   playNoteUp(pitch) {
-    // Send to MIDI out or play with the Magenta player.
-    if (this.usingMidiOut) {
-      this.sendMidiNoteOff(pitch);
-    } else {
-      this.player.playNoteUp({pitch:pitch});
-    }
-  }
-  
-  // MIDI bits.
-  midiReady(midi) {
-    // Also react to device changes.
-    midi.addEventListener('statechange', (event) => this.initDevices(event.target));
-    this.initDevices(midi);
-
-    const outputs = midi.outputs.values();
-    for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
-      this.midiOut.push(output.value);
-    }
-  }
-
-  initDevices(midi) {
-    this.midiOut = [];
-
-    const outputs = midi.outputs.values();
-    for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
-      this.midiOut.push(output.value);
-    }
-    
-    // No MIDI, no settings.
-    btnSettings.hidden = this.midiOut.length === 0;
-    this.selectElement.innerHTML = this.midiOut.map(device => `<option>${device.name}</option>`).join('');
-  }
-
-  sendMidiNoteOn(pitch) {
-    const msg = [0x90, pitch, 0x7f];    // note on, full velocity.
-    this.midiOut[this.selectElement.selectedIndex].send(msg);
-  }
-
-  sendMidiNoteOff(pitch) {
-    const msg = [0x80, pitch, 0x7f];    // note on, middle C, full velocity.
-    this.midiOut[this.selectElement.selectedIndex].send(msg);
+    this.player.playNoteUp({pitch:pitch});
   }
 }
 

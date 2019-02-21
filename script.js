@@ -16,6 +16,7 @@ let sustainingNotes = [];
 let mouseDownButton = null;
 
 const player = new Player();
+const midiHelper = new MIDIHelper();
 const genie = new mm.PianoGenie(CONSTANTS.GENIE_CHECKPOINT);
 const painter = new FloatyNotes();
 const piano = new Piano();
@@ -79,7 +80,7 @@ function showMainScreen() {
     midiSupported.hidden = false;
     navigator.requestMIDIAccess()
       .then(
-          (midi) => player.midiReady(midi),
+          (midi) => initMIDI(midi),
           (err) => console.log('Something went wrong', err));
   } else {
     midiNotSupported.hidden = false;
@@ -91,6 +92,12 @@ function showMainScreen() {
   // Slow to start up, so do a fake prediction to warm up the model.
   const note = genie.nextFromKeyWhitelist(0, keyWhitelist, TEMPERATURE);
   genie.resetState();
+}
+
+function initMIDI(midi) {
+  midiHelper.midiReady(midi);
+  midiHelper.onNoteOn = onMIDINoteOn;
+  midiHelper.onNoteOff = onMIDINoteOff;
 }
 
 // Here touch means either touch or mouse.
@@ -120,8 +127,10 @@ function doTouchMove(event, down) {
 
 /*************************
  * Button actions
+ * the value `button` goes from 0 to 7
  ************************/
 function buttonDown(button, fromKeyDown) {
+  console.log(`Pressing button ${button}`)
   // If we're already holding this button down, nothing new to do.
   if (heldButtonToVisualData.has(button)) {
     return;
@@ -177,6 +186,21 @@ function buttonUp(button) {
 /*************************
  * Events
  ************************/
+function onMIDINoteOn(pitch) {
+  console.log(`MIDI pitch: ${pitch}`);
+  // map pitch to buttons
+  const button = getButtonFromMIDI(pitch);
+  if (button != null) {
+    buttonDown(button, true);
+  }
+}
+function onMIDINoteOff(pitch) {
+  const button = getButtonFromMIDI(pitch);
+  if (button != null) {
+    buttonUp(button, true);
+  }
+}
+
 function onKeyDown(event) {
   // Keydown fires continuously and we don't want that.
   if (event.repeat) {
@@ -243,6 +267,35 @@ function getButtonFromKeyCode(keyCode) {
       return button;
     }
   }
+  return null;
+}
+
+// smaller version; maps to keys in one octave
+const midiToButtonMap = [
+  [48, 49],
+  [50, 51],
+  [52],
+  [53, 54],
+  [55, 56],
+  [57, 58],
+  [59],
+  [60]
+]
+// wider version that utilizes all 25 keys
+// const midiToButtonMap = [
+//   [48,49,50],
+//   [51,52,53],
+//   [54,55,56],
+//   [57,58,59],
+//   [60,61,62],
+//   [63,64,65],
+//   [66,67,68],
+//   [69,70,71,72]
+// ]
+function getButtonFromMIDI(pitch) {
+  const button = midiToButtonMap.findIndex((notes) => notes.includes(pitch))
+  if (button >= 0 && button < CONSTANTS.NUM_BUTTONS) return button;
+  // button number invalid.
   return null;
 }
 
