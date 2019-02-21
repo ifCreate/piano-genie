@@ -15,7 +15,6 @@ const CONSTANTS = {
 class MIDIHelper {
   constructor() {
     this.midiIn = [];
-    this.selectElement = document.getElementById('selectOut');
   }
 
   midiReady(midi) {
@@ -37,9 +36,6 @@ class MIDIHelper {
     this.midiIn.forEach(input => {
       input.onmidimessage = (e) => { this.parseMIDIMessage(e) };
     })
-    // No MIDI, no settings.
-    btnSettings.hidden = this.midiIn.length === 0;
-    this.selectElement.innerHTML = this.midiIn.map(device => `<option>${device.name}</option>`).join('');
   }
   parseMIDIMessage(e) {
     const data = e.data
@@ -68,7 +64,6 @@ class MIDIHelper {
 class Player {
   constructor() {
     this.player = new mm.SoundFontPlayer('sgm_plus');
-    this.midiIn = [];
     
     this.loadAllSamples();
   }
