@@ -15,6 +15,7 @@ const CONSTANTS = {
 class MIDIHelper {
   constructor() {
     this.midiIn = [];
+    this.midiOut = [];
   }
 
   midiReady(midi) {
@@ -25,17 +26,41 @@ class MIDIHelper {
     console.log(midi)
   }
   initDevices(midi) {
-    // clear current midi inputs
+    // clear current midi in/out
     this.midiIn = [];
+    this.midiOut = [];
 
     const inputs = midi.inputs.values();
     for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
       this.midiIn.push(input.value);
     }
+    const outputs = midi.outputs.values();
+    for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
+      this.midiOut.push(output.value);
+    }
     // register midi input events
     this.midiIn.forEach(input => {
       input.onmidimessage = (e) => { this.parseMIDIMessage(e) };
     })
+
+    // set up lights
+    const launchpadOut = this.midiOut.find(output => output.name === 'Launchpad Mini')
+    window.launchpadOut = launchpadOut
+    if (!launchpadOut) return;
+    // turn off lights
+    for (let pitch = 0; pitch < 128; pitch++) {
+      launchpadOut.send([128, pitch, 0])
+    }
+    // turn on lights
+    // TODO make the notes not hardcoded
+    launchpadOut.send([144, 112, 124])
+    launchpadOut.send([144, 113, 3])
+    launchpadOut.send([144, 114, 22])
+    launchpadOut.send([144, 115, 124])
+    launchpadOut.send([144, 116, 3])
+    launchpadOut.send([144, 117, 22])
+    launchpadOut.send([144, 118, 124])
+    launchpadOut.send([144, 119, 3])
   }
   parseMIDIMessage(e) {
     const data = e.data
@@ -48,7 +73,12 @@ class MIDIHelper {
     // 144 - Note on
     if (data[0] === 144) {
       const pitch = data[1]
-      if (this.onNoteOn) this.onNoteOn(pitch)
+      const velocity = data[2]
+      if (velocity === 0) {
+        if (this.onNoteOff) this.onNoteOff(pitch)
+      } else {
+        if (this.onNoteOn) this.onNoteOn(pitch)
+      }
     }
     // 128 - Note off
     if (data[0] === 128) {

@@ -270,28 +270,17 @@ function getButtonFromKeyCode(keyCode) {
   return null;
 }
 
-// smaller version; maps to keys in one octave
+// map to launchpad mini
 const midiToButtonMap = [
-  [48, 49],
-  [50, 51],
-  [52],
-  [53, 54],
-  [55, 56],
-  [57, 58],
-  [59],
-  [60]
+  [112],
+  [113],
+  [114],
+  [115],
+  [116],
+  [117],
+  [118],
+  [119],
 ]
-// wider version that utilizes all 25 keys
-// const midiToButtonMap = [
-//   [48,49,50],
-//   [51,52,53],
-//   [54,55,56],
-//   [57,58,59],
-//   [60,61,62],
-//   [63,64,65],
-//   [66,67,68],
-//   [69,70,71,72]
-// ]
 function getButtonFromMIDI(pitch) {
   const button = midiToButtonMap.findIndex((notes) => notes.includes(pitch))
   if (button >= 0 && button < CONSTANTS.NUM_BUTTONS) return button;
