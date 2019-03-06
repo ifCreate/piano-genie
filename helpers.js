@@ -1,5 +1,5 @@
 const CONSTANTS = {
-  COLORS : ['#EE2B29','#ff9800','#ffff00','#c6ff00','#00e5ff','#2979ff','#651fff','#d500f9'],
+  COLORS : ['#FF7877','#DC7C8F','#C47D9E','#AD7FAD','#9681BD','#7E84CE','#6686DE','#4589F4'],
   NUM_BUTTONS : 8,
   NOTES_PER_OCTAVE : 12,
   WHITE_NOTES_PER_OCTAVE : 7,
@@ -215,8 +215,8 @@ class Piano {
     // First draw all the white notes.
     // Pianos start on an A (if we're using all the octaves);
     if (OCTAVES > 6) {
-      this.makeRect(0, x, y, this.config.whiteNoteWidth, this.config.whiteNoteHeight, 'white', '#141E30');
-      this.makeRect(2, this.config.whiteNoteWidth, y, this.config.whiteNoteWidth, this.config.whiteNoteHeight, 'white', '#141E30');
+      this.makeRect(0, x, y, this.config.whiteNoteWidth, this.config.whiteNoteHeight, 'rgba(255,255,255,.07)', '#979797');
+      this.makeRect(2, this.config.whiteNoteWidth, y, this.config.whiteNoteWidth, this.config.whiteNoteHeight, 'rgba(255,255,255,.07)', '#979797');
       index = 3;
       x = 2 * this.config.whiteNoteWidth;
     } else {
@@ -228,7 +228,7 @@ class Piano {
     for (let o = 0; o < OCTAVES; o++) {
       for (let i = 0; i < CONSTANTS.NOTES_PER_OCTAVE; i++) {
         if (blackNoteIndexes.indexOf(i) === -1) {
-          this.makeRect(index, x, y, this.config.whiteNoteWidth, this.config.whiteNoteHeight, 'white', '#141E30');
+          this.makeRect(index, x, y, this.config.whiteNoteWidth, this.config.whiteNoteHeight, 'rgba(255,255,255,.07)', '#979797');
           x += this.config.whiteNoteWidth;
         }
         index++;
@@ -237,11 +237,11 @@ class Piano {
     
     if (OCTAVES > 6) {
       // And an extra C at the end (if we're using all the octaves);
-      this.makeRect(index, x, y, this.config.whiteNoteWidth, this.config.whiteNoteHeight, 'white', '#141E30');
+      this.makeRect(index, x, y, this.config.whiteNoteWidth, this.config.whiteNoteHeight, 'rgba(255,255,255,.07)', '#979797');
 
       // Now draw all the black notes, so that they sit on top.
       // Pianos start on an A:
-      this.makeRect(1, this.config.whiteNoteWidth - halfABlackNote, y, this.config.blackNoteWidth, this.config.blackNoteHeight, 'black');
+      this.makeRect(1, this.config.whiteNoteWidth - halfABlackNote, y, this.config.blackNoteWidth, this.config.blackNoteHeight, '#1B1C2A', '#979797');
       index = 3;
       x = this.config.whiteNoteWidth;
     } else {
@@ -254,7 +254,7 @@ class Piano {
     for (let o = 0; o < OCTAVES; o++) {
       for (let i = 0; i < CONSTANTS.NOTES_PER_OCTAVE; i++) {
         if (blackNoteIndexes.indexOf(i) !== -1) {
-          this.makeRect(index, x + this.config.whiteNoteWidth - halfABlackNote, y, this.config.blackNoteWidth, this.config.blackNoteHeight, 'black');
+          this.makeRect(index, x + this.config.whiteNoteWidth - halfABlackNote, y, this.config.blackNoteWidth, this.config.blackNoteHeight, '#1B1C2A', '#979797');
         } else {
           x += this.config.whiteNoteWidth;
         }
@@ -290,7 +290,7 @@ class Piano {
     rect.setAttribute('fill', fill);
     if (stroke) {
       rect.setAttribute('stroke', stroke);
-      rect.setAttribute('stroke-width', '3px');
+      rect.setAttribute('stroke-width', '1px');
     }
     this.svg.appendChild(rect);
     return rect;
