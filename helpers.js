@@ -1,10 +1,17 @@
-const CONSTANTS = {
+var CONSTANTS = {
   COLORS : ['#FF7877','#DC7C8F','#C47D9E','#AD7FAD','#9681BD','#7E84CE','#6686DE','#4589F4'],
   NUM_BUTTONS : 8,
   NOTES_PER_OCTAVE : 12,
   WHITE_NOTES_PER_OCTAVE : 7,
   LOWEST_PIANO_KEY_MIDI_NOTE : 21,
   GENIE_CHECKPOINT : 'model',  
+}
+
+var COLORTYPES = {
+  Normal: ['#FF7877','#DC7C8F','#C47D9E','#AD7FAD','#9681BD','#7E84CE','#6686DE','#4589F4'],
+  Summer: ['#FF205C', '#FF3D37', '#FF581A', '#F89304', '#D8A721', '#96C26B', '#67D2A3', '#42DFCE'],
+  Relay: ['#F40C84', '#DB2A8F', '#C2489A', '#AC62A3', '#8A89B1', '#75A1B9', '#56C6C7', '#42DFCE'],
+  Sunset: ['#FE035E', '#FC275B', '#FB3959', '#FA5157', '#F77054', '#F59B50', '#F3B84E', '#F0DA4B']
 }
 
 /*************************
@@ -93,7 +100,7 @@ class MIDIHelper {
  ************************/
 class Player {
   constructor() {
-    this.player = new mm.SoundFontPlayer('sgm_plus');
+    this.player = new mm.SoundFontPlayer('sgm_plus/acoustic_grand_piano');
     
     this.loadAllSamples();
   }
@@ -114,6 +121,12 @@ class Player {
   
   playNoteUp(pitch) {
     this.player.playNoteUp({pitch:pitch});
+  }
+
+  switchPlayer(newPlayer){
+    this.player = new mm.SoundFontPlayer('sgm_plus/' + newPlayer);
+
+    this.loadAllSamples();
   }
 }
 
